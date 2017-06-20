@@ -1,29 +1,20 @@
 package journald
 
-import "os/exec"
-import "encoding/json"
-import "bufio"
-import "strings"
-import "log"
+import (
+	"fmt"
+	"os/exec"
+)
 
-const DefaultSocket = "/var/run/journald-test.sock"
-
-func CollectJournal(c chan JournalEntry) {
-	cmd := exec.Command("journalctl", "--output", "json-sse", "--follow")
+func CollectJournal() (*Decoder, error) {
+	cmd := exec.Command("journalctl", "--output", "json", "--follow")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatalf("Could not run journalctl: %v", err)
+		return nil, fmt.Errorf("journald: could not run journalctl: %v", err)
 	}
-	cmd.Start()
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		msg := scanner.Text()
-		var entry JournalEntry
-		err := json.Unmarshal([]byte(strings.Replace(msg, "data:", "", 1)), &entry)
-		if err != nil {
-			// Ignore blank lines
-		} else {
-			c <- (entry)
-		}
+	err = cmd.Start()
+	if err != nil {
+		return nil, fmt.Errorf("journald: could not run journalctl(2): %v", err)
 	}
+
+	return NewDecoder(stdout), nil
 }
