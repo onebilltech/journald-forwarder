@@ -2,14 +2,15 @@ package loggly
 
 import (
 	"encoding/json"
-	"github.com/uswitch/journald-forwarder/journald"
 	"time"
+
+	"github.com/uswitch/journald-forwarder/journald"
 )
 
-func ProcessJournal(c chan journald.JournalEntry, uri string) {
+func ProcessJournal(c <-chan journald.JournalEntry, errC chan<- error, uri string) {
 	for msg := range c {
 
-		loggly_entry := JournalEntry{
+		logglyEntry := JournalEntry{
 			Pid:                     msg.Pid,
 			Uid:                     msg.Uid,
 			Gid:                     msg.Gid,
@@ -62,11 +63,13 @@ func ProcessJournal(c chan journald.JournalEntry, uri string) {
 			ContainerName:           msg.ContainerName,
 			ContainerTag:            msg.ContainerTag,
 		}
-		json_entry, err := json.Marshal(loggly_entry)
-		if err != nil {
 
-		} else {
-			SendEvent(string(json_entry)[:], uri)
+		jsonEntry, err := json.Marshal(logglyEntry)
+		if err != nil {
+			errC <- err
+			return
 		}
+
+		SendEvent(string(jsonEntry)[:], uri)
 	}
 }

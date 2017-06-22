@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/uswitch/journald-forwarder/journald"
-	"github.com/uswitch/journald-forwarder/loggly"
 	"log"
 	"os"
 	"runtime"
-	"time"
+
+	"github.com/uswitch/journald-forwarder/journald"
+	"github.com/uswitch/journald-forwarder/loggly"
 )
 
 var token = flag.String("token", "", "Loggly Token")
@@ -32,11 +32,13 @@ func main() {
 	log.SetOutput(f)
 
 	c := make(chan journald.JournalEntry, 2)
+	errC := make(chan error)
 	uri := loggly.GenerateUri(*token, *tag)
-	go journald.CollectJournal(c)
-	go loggly.ProcessJournal(c, uri)
+	go journald.CollectJournal(c, errC)
+	go loggly.ProcessJournal(c, errC, uri)
 
-	for {
-		time.Sleep(1 * time.Second)
+	err = <-errC
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
