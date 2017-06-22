@@ -35,5 +35,9 @@ func collectJournal(c chan<- JournalEntry) error {
 			c <- (entry)
 		}
 	}
+	err = scanner.Err()
+	if err != nil {
+		return fmt.Errorf("journald: scanner error: %v", err)
+	}
 	return nil
 }
