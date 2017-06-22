@@ -4,7 +4,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"runtime"
 
 	"github.com/uswitch/journald-forwarder/journald"
 	"github.com/uswitch/journald-forwarder/loggly"
@@ -20,8 +19,6 @@ func main() {
 	if *token == "" {
 		log.Fatalf("-token is required.")
 	}
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	var err error
 	var f *os.File
