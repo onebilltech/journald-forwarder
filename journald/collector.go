@@ -14,7 +14,7 @@ func CollectJournal(c chan<- JournalEntry, errC chan<- error) {
 }
 
 func collectJournal(c chan<- JournalEntry) error {
-	cmd := exec.Command("journalctl", "--output", "json-sse", "--follow")
+	cmd := exec.Command("journalctl", "--output", "json", "--follow")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("journald: could not run journalctl: %v", err)
@@ -27,13 +27,11 @@ func collectJournal(c chan<- JournalEntry) error {
 	for scanner.Scan() {
 		msg := scanner.Text()
 		var entry JournalEntry
-		if len(msg) > 5 {
-			err := json.Unmarshal([]byte(msg[5:]), &entry)
-			if err != nil {
-				return fmt.Errorf("journald: unmarshal error: %v: %v", err, msg)
-			}
-			c <- (entry)
+		err := json.Unmarshal([]byte(msg), &entry)
+		if err != nil {
+			return fmt.Errorf("journald: unmarshal error: %v: %v", err, msg)
 		}
+		c <- (entry)
 	}
 	return nil
 }
