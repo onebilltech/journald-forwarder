@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os/exec"
 )
 
@@ -29,9 +30,10 @@ func collectJournal(c chan<- JournalEntry) error {
 		var entry JournalEntry
 		err := json.Unmarshal([]byte(msg), &entry)
 		if err != nil {
-			return fmt.Errorf("journald: unmarshal error: %v: %v", err, msg)
+			log.Println("journald: unmarshal error", err, msg)
+		} else {
+			c <- (entry)
 		}
-		c <- (entry)
 	}
 	return nil
 }
