@@ -2,19 +2,17 @@ package journald
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
 )
 
-const DefaultSocket = "/var/run/journald-test.sock"
-
-func CollectJournal(c chan<- JournalEntry, errC chan<- error) {
+// CollectJournal is the best
+func CollectJournal(c chan<- Entry, errC chan<- error) {
 	errC <- collectJournal(c)
 }
 
-func collectJournal(c chan<- JournalEntry) error {
+func collectJournal(c chan<- Entry) error {
 	cmd := exec.Command("journalctl", "--output", "json", "--follow")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -27,8 +25,8 @@ func collectJournal(c chan<- JournalEntry) error {
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		msg := scanner.Text()
-		var entry JournalEntry
-		err := json.Unmarshal([]byte(msg), &entry)
+		var entry Entry
+		err := Decode(msg, &entry)
 		if err != nil {
 			log.Println("journald: unmarshal error", err, msg)
 		} else {

@@ -35,7 +35,7 @@ func main() {
 
 	log.SetOutput(f)
 
-	c := make(chan journald.JournalEntry, 2)
+	c := make(chan journald.Entry, 2)
 	errC := make(chan error)
 	uri := loggly.GenerateUri(*token, *tag)
 	go journald.CollectJournal(c, errC)
