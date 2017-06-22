@@ -44,7 +44,7 @@ func SendEvent(entry string, uri string) {
 	var response Response
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		log.Println("Invalid response:", err)
+		log.Println("Invalid response:", err, body)
 		return
 	}
 	if response.Response != "ok" {
